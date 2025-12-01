@@ -29,5 +29,37 @@ namespace StudentFeeManagement.Core.Data
                 }
             }
         }
+        public List<StudentFeeAssignment> GetPendingAssignments()
+        {
+            var list = new List<StudentFeeAssignment>();
+
+            using (SqlConnection conn = DbHelper.GetConnection())
+            {
+                string query = @"SELECT * FROM StudentFeeAssignments
+                             WHERE DueDate < GETDATE()
+                             AND Status = 'Pending'";
+
+                using (SqlCommand cmd = new SqlCommand(query, conn))
+                {
+                    conn.Open();
+                    using (SqlDataReader dr = cmd.ExecuteReader())
+                    {
+                        while (dr.Read())
+                        {
+                            list.Add(new StudentFeeAssignment
+                            {
+                                StudentId = Convert.ToInt32(dr["StudentId"]),
+                                FeePlanId = Convert.ToInt32(dr["FeePlanId"]),
+                                DueDate = Convert.ToDateTime(dr["DueDate"]),
+                                TotalAmount = Convert.ToDecimal(dr["TotalAmount"]),
+                                Status = dr["Status"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }
